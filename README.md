@@ -8,6 +8,7 @@ Telegram-bot для конвертации валют
 Бот написан с использованием следуйщих библиотек:
 * [Telebot](https://pypi.org/project/pyTelegramBotAPI/)
 * [Requests](https://pypi.org/project/requests/)
+* [Dotenv](https://pypi.org/project/python-dotenv/)
 
 Конвертор валют на питоне в формате telegram-бота
 
@@ -30,6 +31,7 @@ pip install -r requirements.txt
 * Python
 * Telebot
 * Requests
+* Dotenv
 * API
 
 Скриншоты
