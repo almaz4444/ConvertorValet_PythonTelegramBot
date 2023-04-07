@@ -37,4 +37,8 @@ pip install -r requirements.txt
 Скриншоты
 --------------
 
-!["Ошибка загрузки"](/Screenhots/main-screen.png)
+!["Ошибка загрузки"](/Screenhots/Main.png "Главный экран")
+
+!["Ошибка загрузки"](/Screenhots/ConvertValet.png "Конвертация валюты")
+
+!["Ошибка загрузки"](/Screenhots/Output.png "Ответ бота")
