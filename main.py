@@ -1,10 +1,14 @@
 import os
 import requests
+from dotenv import load_dotenv
 import telebot
 import telebot.types as types
 
+load_dotenv()
+
 # URL для парсинга текущих курсов валют в рублях
 URL_VALUTES = "https://www.cbr-xml-daily.ru/daily_json.js"
+TOKEN: str = os.getenv('TOKEN')  # type: ignore
 
 
 # Словарь из chat.id для того, чтобы у каждого могло конвертироваться индивидуально {id: (inValute, toValute)}
@@ -12,8 +16,8 @@ chats = {}
 
 # Клавиатуры
 keyboardValute = types.InlineKeyboardMarkup(row_width=7)  # Коды валют
-keyboardBack = types.InlineKeyboardMarkup()            # Кнопка "Назад"
-keyboardMain = types.InlineKeyboardMarkup()            # Главная "страница"
+keyboardBack = types.InlineKeyboardMarkup()               # Кнопка "Назад"
+keyboardMain = types.InlineKeyboardMarkup()               # Главная "страница"
 
 bot = telebot.TeleBot(TOKEN)
 
@@ -75,6 +79,21 @@ def formatNumber(num):
         return num
 
 
+def is_digit(string):
+    """
+    Возвращает True, если аргумент является числом (int, float)
+    иначе - False
+    """
+    if string.isdigit():
+        return True
+    else:
+        try:
+            float(string)
+            return True
+        except ValueError:
+            return False
+
+
 @bot.message_handler(commands=['start'])  # При команде /start
 def start_message(message):
     """Отправим стартовое сообщение"""
@@ -93,7 +112,7 @@ def receivedKey(call):
         text, board = None, None
 
         if call.data == "info":
-            text = "Если хочешь сконвертировать валюу, то обращайся ко мне :)\nДля этого выбери валюту из которой и в которую перевести, а после напиши сумму. 🆗\nМеня сделал Сальманов Алмаз Русланович. 👨‍💻\nА вот мой исходный код 😱: https://github.com/almaz4444/ConvertorValet_PythonTelegramBot/tree/master"
+            text = "Если хочешь сконвертировать валюу, то обращайся ко мне :)\nДля этого выбери валюту из которой и в которую перевести, а после напиши сумму. 🆗\nМеня сделал Сальманов Алмаз Русланович. 👨‍💻\nА вот мой исходный код 😱: https://github.com/almaz4444/ConvertorValet_PythonTelegramBot"
             board = keyboardBack
         elif call.data == "convert":
             text = "Выбери код валюты для перевода:"
@@ -131,12 +150,10 @@ def receivedKey(call):
 def receivedSumValute(message):
     inValute, toValute = chats.setdefault(str(message.chat.id), ("", ""))
 
-    if(inValute and toValute):  # Если введены обе валюты для перевода
+    if (inValute and toValute):  # Если введены обе валюты для перевода
         text, board = None, None
 
-        print(message.text.isalpha())
-
-        if message.text.isnumeric():  # Если это число (float или int)
+        if is_digit(message.text):  # Если это число (float или int)
             valutesDict = get_valutes_dict()
             valutesName = get_valutes_names()
             inKeySum = valutesDict[inValute]
@@ -159,6 +176,6 @@ def receivedSumValute(message):
         bot.send_message(message.chat.id, text, reply_markup=board)
 
 
-if(__name__ == "__main__"):
+if (__name__ == "__main__"):
     init_keyboards()
     bot.infinity_polling()
