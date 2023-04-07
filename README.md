@@ -6,14 +6,14 @@ Telegram-бот конвертор валют
 Telegram-bot для конвертации валют
 
 Бот написан с использованием следуйщих библиотек:
-* [Telebot]
-* [Requests]
+* [Telebot](https://pypi.org/project/pyTelegramBotAPI/)
+* [Requests](https://pypi.org/project/requests/)
 
 Конвертор валют на питоне в формате telegram-бота
 
 Загрузка
 ------------
-1. Создать бота в BotFather и получить токен
+1. Создать бота в [BotFather](https://telegram.me/BotFather) и получить токен
 2. Переименовать файл ``.env.dist`` в ``.env``
 3. Вставить токен в `TOKEN`
 3. Загрузить репозиторий
@@ -35,4 +35,4 @@ pip install -r requirements.txt
 Скриншоты
 --------------
 
-!["alt text"](/Screenhots/main-screen.png)
+!["Ошибка загрузки"](/Screenhots/main-screen.png)
