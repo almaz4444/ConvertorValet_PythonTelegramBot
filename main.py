@@ -19,6 +19,8 @@ keyboardValute = types.InlineKeyboardMarkup(row_width=7)  # Коды валют
 keyboardBack = types.InlineKeyboardMarkup()               # Кнопка "Назад"
 keyboardMain = types.InlineKeyboardMarkup()               # Главная "страница"
 
+old_message = None
+
 bot = telebot.TeleBot(TOKEN)
 
 
@@ -141,9 +143,10 @@ def receivedKey(call):
 
         chats[str(call.message.chat.id)] = (inValute, toValute)
 
-        # Отправляем сообщение
-        bot.edit_message_text(text, call.message.chat.id,
-                              call.message.id, reply_markup=board)
+        # Меняем сообщение сообщение
+        global old_message
+        old_message = bot.edit_message_text(text, call.message.chat.id,
+                                            call.message.id, reply_markup=board).message_id
 
 
 @ bot.message_handler(content_types='text')  # Если сообщение текстовое
@@ -172,8 +175,12 @@ def receivedSumValute(message):
 
         chats[str(message.chat.id)] = (inValute, toValute)
 
-        # Отправляем сообщение
-        bot.send_message(message.chat.id, text, reply_markup=board)
+        # Удаляем сообщение пользователя
+        bot.delete_message(message.chat.id, message.id)
+
+        # Меняем сообщение сообщение
+        bot.edit_message_text(text, message.chat.id,
+                              old_message, reply_markup=board)
 
 
 if (__name__ == "__main__"):
