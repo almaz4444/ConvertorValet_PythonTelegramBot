@@ -26,6 +26,11 @@ cd ConvertorValet_PythonTelegramBot
 pip install -r requirements.txt
 ```
 
+Как запустить?
+```
+python3 main.py
+```
+
 Технологии
 --------------
 * Python
