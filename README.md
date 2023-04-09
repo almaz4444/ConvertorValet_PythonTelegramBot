@@ -1,4 +1,4 @@
-Telegram-бот конвертор валют
+Telegram-бот конвертер валют
 ========
 
 Ведение
@@ -10,7 +10,7 @@ Telegram-bot для конвертации валют
 * [Requests](https://pypi.org/project/requests/)
 * [Dotenv](https://pypi.org/project/python-dotenv/)
 
-Конвертор валют на питоне в формате telegram-бота
+Конвертер валют на питоне в формате telegram-бота
 
 Загрузка
 ------------
