@@ -10,7 +10,8 @@ URL_VALUTES = "https://www.cbr-xml-daily.ru/daily_json.js"
 TOKEN: str = os.getenv('TOKEN')  # type: ignore
 
 start_message_text = '''
-Привет! Хочешь сконвертировать валюту?
+Привет!
+Хочешь сконвертировать валюту?
 Я могу тебе с этим помочь :)
 '''
 

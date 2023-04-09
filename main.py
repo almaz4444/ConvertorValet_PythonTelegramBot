@@ -55,6 +55,20 @@ def init_keyboards():
     keyboardValute.add(*keyboardButtons)
 
 
+def get_converted_valute_text(inValuteSum, toValuteSum,
+                              inValuteName, toValuteName,
+                              inValuteCode, toValuteCode,
+                              course
+                              ):
+    text = ""
+    text += f"Готово!\nНа данный момент ({get_time()}) 🕑\n"
+    text += f"{inValuteSum} {inValuteName} ({inValuteCode}) - примерно {toValuteSum} {toValuteName} ({toValuteCode}).\n"
+    text += f"Курс конвертации: {round(course, 2)} {inValuteCode}/{toValuteCode}\n"
+    text += f"Обращайся ещё, буду рад помочь! :)"
+
+    return text
+
+
 def get_valutes_courses():
     """Возвращает словарь с кодами валют и их курсом в рублях {код: курс}"""
 
@@ -164,18 +178,24 @@ def receivedKey(call):
                                             ).message_id
 
 
+not_dict_received_count = 0
+
+
 @ bot.message_handler(content_types='text')  # Если сообщение текстовое
 def receivedSumValute(message):
-    inValute, toValute = chats.setdefault(str(message.chat.id), ("", ""))
+    inValuteCode, toValuteCode = chats.setdefault(
+        str(message.chat.id), ("", ""))
 
-    if (inValute and toValute):     # Если введены обе валюты для перевода
+    if (inValuteCode and toValuteCode):     # Если введены обе валюты для перевода
+        global not_dict_received_count
+
         text, board = None, None
 
         if is_digit(message.text):      # Если это число (float или int)
             valutesCourses = get_valutes_courses()
             valutesName = get_valutes_names()
-            inValuteCourse = valutesCourses[inValute]
-            toValuteCourse = valutesCourses[toValute]
+            inValuteCourse = valutesCourses[inValuteCode]
+            toValuteCourse = valutesCourses[toValuteCode]
 
             # Рассчитываем сконвертированную сумму:
             course = inValuteCourse / toValuteCourse
@@ -188,22 +208,26 @@ def receivedSumValute(message):
                 formatNumber(sumValute)
             ).replace(',', ' ')
 
-            text = f"Готово!\nНа данный момент ({get_time()}) 🕑\n \
-                    {inValuteSum} {valutesName[inValute]} ({inValute}) - примерно {toValuteSum} {valutesName[toValute]} ({toValute}).\n \
-                    Курс конвертации: {round(course, 2)} {inValute}/{toValute}\n \
-                    Обращайся ещё, буду рад помочь! :)"
+            text = get_converted_valute_text(inValuteSum, toValuteSum,
+                                             valutesName[inValuteCode], valutesName[toValuteCode],
+                                             inValuteCode, toValuteCode,
+                                             course
+                                             )
             board = keyboardMain
-            inValute, toValute = "", ""
+            inValuteCode, toValuteCode = "", ""
+            not_dict_received_count = 0
         else:
             text = "Упс! Пожоже это не число :(\nНапиши сумму ещё раз."
             board = None    # Не заменяем клавиатуру
+            not_dict_received_count += 1
 
-        chats[str(message.chat.id)] = (inValute, toValute)
+        chats[str(message.chat.id)] = (inValuteCode, toValuteCode)
 
         # Меняем сообщение сообщение
-        bot.edit_message_text(text, message.chat.id,
-                              old_message, reply_markup=board
-                              )
+        if not_dict_received_count <= 1:
+            bot.edit_message_text(text, message.chat.id,
+                                  old_message, reply_markup=board
+                                  )
 
     # Удаляем сообщение пользователя
     bot.delete_message(message.chat.id, message.id)
