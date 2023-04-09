@@ -10,8 +10,6 @@ Telegram-bot для конвертации валют
 * [Requests](https://pypi.org/project/requests/)
 * [Dotenv](https://pypi.org/project/python-dotenv/)
 
-Конвертер валют на питоне в формате telegram-бота
-
 Загрузка
 ------------
 1. Создать бота в [BotFather](https://telegram.me/BotFather) и получить токен
