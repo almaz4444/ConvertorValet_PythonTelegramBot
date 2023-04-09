@@ -59,7 +59,7 @@ def get_converted_valute_text(inValuteSum, toValuteSum,
                               inValuteName, toValuteName,
                               inValuteCode, toValuteCode,
                               course
-                              ):
+                              ) -> str:
     text = ""
     text += f"Готово!\nНа данный момент ({get_time()}) 🕑\n"
     text += f"{inValuteSum} {inValuteName} ({inValuteCode}) - примерно {toValuteSum} {toValuteName} ({toValuteCode}).\n"
@@ -69,7 +69,7 @@ def get_converted_valute_text(inValuteSum, toValuteSum,
     return text
 
 
-def get_valutes_courses():
+def get_valutes_courses() -> dict:
     """Возвращает словарь с кодами валют и их курсом в рублях {код: курс}"""
 
     valutes = requests.get(URL_VALUTES).json()["Valute"]
@@ -81,14 +81,14 @@ def get_valutes_courses():
     return dict(sorted(valutesDict.items()))
 
 
-def get_time():
-    """Возвращает дату и время актуального курса валют <ГГ.ММ.ДД ЧЧ.ММ.СС>"""
+def get_time() -> str:
+    """Возвращает дату и время актуального курса валют <ГГ:ММ:ДД чч:мм:сс>"""
 
     date = requests.get(URL_VALUTES).json()['Date']
     return f"{date.replace('T', ' ').split('+')[0]} по МСК"
 
 
-def get_valutes_names():
+def get_valutes_names() -> dict:
     """Возвращает словарь с кодами и названиями валют (некоторые валюты в род. падеже) {код: название}"""
 
     valutes = requests.get(URL_VALUTES).json()["Valute"]
@@ -111,7 +111,7 @@ def formatNumber(num: float):
         return num
 
 
-def is_digit(num_string: str):
+def is_digit(num_string: str) -> bool:
     """
     Возвращает True, если аргумент является числом (int, float)
     иначе - False
@@ -133,10 +133,9 @@ def start_message(message):
                      )
 
 
-# При нажатии на любую кнопку
 @bot.callback_query_handler(func=lambda call: True)
 def receivedKey(call):
-    if call.message:        # Если сообщение не пустое
+    if call.message:
         inValute, toValute = chats.setdefault(
             str(call.message.chat.id), ("", ""))
         text, board = None, None
@@ -181,7 +180,7 @@ def receivedKey(call):
 not_dict_received_count = 0
 
 
-@ bot.message_handler(content_types='text')  # Если сообщение текстовое
+@ bot.message_handler(content_types='text')
 def receivedSumValute(message):
     inValuteCode, toValuteCode = chats.setdefault(
         str(message.chat.id), ("", ""))
