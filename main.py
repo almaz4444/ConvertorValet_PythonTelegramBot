@@ -1,17 +1,12 @@
-import os
 import requests
-from dotenv import load_dotenv
 import telebot
 import telebot.types as types
 
-load_dotenv()
-
-# URL для парсинга текущих курсов валют в рублях
-URL_VALUTES = "https://www.cbr-xml-daily.ru/daily_json.js"
-TOKEN: str = os.getenv('TOKEN')  # type: ignore
+from data import *
 
 
-# Словарь из chat.id для того, чтобы у каждого могло конвертироваться индивидуально {id: (inValute, toValute)}
+# Словарь из chat.id
+# Чтобы у каждого могло конвертироваться индивидуально {id: (inValute, toValute)}
 chats = {}
 
 # Клавиатуры
@@ -26,25 +21,43 @@ bot = telebot.TeleBot(TOKEN)
 
 def init_keyboards():
     """Инициализация клавиатур (добавление кнопок в клавиатуры)"""
-    keyboardValute.add(types.InlineKeyboardButton(
-        "🔙 Назад", callback_data="back"))
-    keyboardBack.add(types.InlineKeyboardButton(
-        "🔙 Назад", callback_data="back"))
-    keyboardMain   .add(types.InlineKeyboardButton(
-        "🔁 Конвертировать 🔁", callback_data="convert"))
-    keyboardMain   .add(types.InlineKeyboardButton(
-        "ℹ️ О проекте ℹ️", callback_data="info"))
 
-    # Добавление кнопок с кодами валют (сделано данным образом, для того, чтобы кнопки могли выстраиваться в ряд)
+    keyboardValute.add(
+        types.InlineKeyboardButton(
+            "🔙 Назад", callback_data="back"
+        )
+    )
+    keyboardBack.add(
+        types.InlineKeyboardButton(
+            "🔙 Назад", callback_data="back"
+        )
+    )
+    keyboardMain.add(
+        types.InlineKeyboardButton(
+            "🔁 Конвертировать 🔁", callback_data="convert"
+        )
+    )
+    keyboardMain.add(
+        types.InlineKeyboardButton(
+            "ℹ️ О проекте ℹ️", callback_data="info"
+        )
+    )
+
+    # Добавление кнопок с кодами валют
+    # (сделано данным образом, для того, чтобы кнопки могли выстраиваться в ряд)
     keyboardButtons = []
     for valuteCode in get_valutes_names().keys():
-        keyboardButtons.append(types.InlineKeyboardButton(
-            valuteCode, callback_data=valuteCode))
+        keyboardButtons.append(
+            types.InlineKeyboardButton(
+                valuteCode, callback_data=valuteCode
+            )
+        )
     keyboardValute.add(*keyboardButtons)
 
 
-def get_valutes_dict():
+def get_valutes_courses():
     """Возвращает словарь с кодами валют и их курсом в рублях {код: курс}"""
+
     valutes = requests.get(URL_VALUTES).json()["Valute"]
     valutesDict = {"RUB": 1}    # Курса рубля нет на сайте (удивительно...)
 
@@ -56,11 +69,14 @@ def get_valutes_dict():
 
 def get_time():
     """Возвращает дату и время актуального курса валют <ГГ.ММ.ДД ЧЧ.ММ.СС>"""
-    return requests.get(URL_VALUTES).json()["Date"].replace("T", " ").split("+")[0] + " по МСК"
+
+    date = requests.get(URL_VALUTES).json()['Date']
+    return f"{date.replace('T', ' ').split('+')[0]} по МСК"
 
 
 def get_valutes_names():
     """Возвращает словарь с кодами и названиями валют (некоторые валюты в род. падеже) {код: название}"""
+
     valutes = requests.get(URL_VALUTES).json()["Valute"]
     valutesDict = {"RUB": "Российский рубль"}
 
@@ -69,9 +85,9 @@ def get_valutes_names():
     return valutesDict
 
 
-def formatNumber(num):
+def formatNumber(num: float):
     """
-    Если в числе присутствует .0, то возвращает чило без него, иначе вернёт исходное число:
+    Если в числа присутствует .0, то возвращает чило без него, иначе вернёт исходное число:
     formatNumber(10.0) => 10
     formatNumber(10.5) => 10.5
     """
@@ -81,26 +97,24 @@ def formatNumber(num):
         return num
 
 
-def is_digit(string):
+def is_digit(num_string: str):
     """
     Возвращает True, если аргумент является числом (int, float)
     иначе - False
     """
-    if string.isdigit():
+    try:
+        float(num_string)
         return True
-    else:
-        try:
-            float(string)
-            return True
-        except ValueError:
-            return False
+    except ValueError:
+        return False
 
 
 @bot.message_handler(commands=['start'])  # При команде /start
 def start_message(message):
     """Отправим стартовое сообщение"""
+
     bot.send_message(message.chat.id,
-                     'Привет! Хочешь сконвертировать валюту?\nЯ могу тебе с этим помочь :)',
+                     start_message_text,
                      reply_markup=keyboardMain
                      )
 
@@ -114,7 +128,7 @@ def receivedKey(call):
         text, board = None, None
 
         if call.data == "info":
-            text = "Если хочешь сконвертировать валюу, то обращайся ко мне :)\nДля этого выбери валюту из которой и в которую перевести, а после напиши сумму. 🆗\nМеня сделал Сальманов Алмаз Русланович. 👨‍💻\nА вот мой исходный код 😱: https://github.com/almaz4444/ConvertorValet_PythonTelegramBot"
+            text = bot_info_text
             board = keyboardBack
         elif call.data == "convert":
             text = "Выбери код валюты для перевода:"
@@ -128,10 +142,10 @@ def receivedKey(call):
                 inValute = ""
                 board = keyboardValute
             else:
-                text = 'Привет! Хочешь сконвертировать валюту?\nЯ могу тебе с этим помочь :)'
+                text = start_message_text
                 board = keyboardMain
         elif not (inValute and toValute):       # Если не введена любая валюта для перевода
-            if call.data in get_valutes_dict():  # Если код валюты есть в списке (на всякий случай)
+            if call.data in get_valutes_courses():  # Если код валюты есть в списке (на всякий случай)
                 if not inValute:   # Если не введдена валюта, из которой перевести
                     text = "Отлично! Выбери код валюты в которую надо перевести."
                     board = keyboardValute
@@ -146,7 +160,8 @@ def receivedKey(call):
         # Меняем сообщение сообщение
         global old_message
         old_message = bot.edit_message_text(text, call.message.chat.id,
-                                            call.message.id, reply_markup=board).message_id
+                                            call.message.id, reply_markup=board
+                                            ).message_id
 
 
 @ bot.message_handler(content_types='text')  # Если сообщение текстовое
@@ -157,16 +172,26 @@ def receivedSumValute(message):
         text, board = None, None
 
         if is_digit(message.text):  # Если это число (float или int)
-            valutesDict = get_valutes_dict()
+            valutesCourses = get_valutes_courses()
             valutesName = get_valutes_names()
-            inKeySum = valutesDict[inValute]
-            toKeySum = valutesDict[toValute]
+            inValuteCourse = valutesCourses[inValute]
+            toValuteCourse = valutesCourses[toValute]
 
             # Рассчитываем сконвертированную сумму:
-            course = inKeySum / toKeySum
+            course = inValuteCourse / toValuteCourse
             sumValute = round(float(message.text) * course, 2)
 
-            text = f"Готово!\nНа данный момент ({get_time()}) 🕑\n{'{0:,}'.format(formatNumber(float(message.text))).replace(',', ' ')} {valutesName[inValute]} ({inValute}) - примерно {'{0:,}'.format(formatNumber(sumValute)).replace(',', ' ')} {valutesName[toValute]} ({toValute}).\nКурс конвертации: {round(course, 2)} {inValute}/{toValute}\nОбращайся ещё, буду рад помочь! :)"
+            inValuteSum = '{0:,}'.format(
+                formatNumber(float(message.text))
+            ).replace(',', ' ')
+            toValuteSum = '{0:,}'.format(
+                formatNumber(sumValute)
+            ).replace(',', ' ')
+
+            text = f"Готово!\nНа данный момент ({get_time()}) 🕑\n \
+                    {inValuteSum} {valutesName[inValute]} ({inValute}) - примерно {toValuteSum} {valutesName[toValute]} ({toValute}).\n \
+                    Курс конвертации: {round(course, 2)} {inValute}/{toValute}\n \
+                    Обращайся ещё, буду рад помочь! :)"
             board = keyboardMain
             inValute, toValute = "", ""
         else:
@@ -180,7 +205,8 @@ def receivedSumValute(message):
 
         # Меняем сообщение сообщение
         bot.edit_message_text(text, message.chat.id,
-                              old_message, reply_markup=board)
+                              old_message, reply_markup=board
+                              )
 
 
 if (__name__ == "__main__"):
