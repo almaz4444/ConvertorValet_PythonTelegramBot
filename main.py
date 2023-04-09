@@ -59,7 +59,7 @@ def get_valutes_courses():
     """Возвращает словарь с кодами валют и их курсом в рублях {код: курс}"""
 
     valutes = requests.get(URL_VALUTES).json()["Valute"]
-    valutesDict = {"RUB": 1}    # Курса рубля нет на сайте (удивительно...)
+    valutesDict = {"RUB": 1}       # Курса рубля нет на сайте (удивительно...)
 
     for valute in valutes:
         valutesDict[valute] = int(valutes[valute]["Value"]) / \
@@ -109,7 +109,7 @@ def is_digit(num_string: str):
         return False
 
 
-@bot.message_handler(commands=['start'])  # При команде /start
+@bot.message_handler(commands=['start'])     # При команде /start
 def start_message(message):
     """Отправим стартовое сообщение"""
 
@@ -122,7 +122,7 @@ def start_message(message):
 # При нажатии на любую кнопку
 @bot.callback_query_handler(func=lambda call: True)
 def receivedKey(call):
-    if call.message:  # Если сообщение не пустое
+    if call.message:        # Если сообщение не пустое
         inValute, toValute = chats.setdefault(
             str(call.message.chat.id), ("", ""))
         text, board = None, None
@@ -144,13 +144,13 @@ def receivedKey(call):
             else:
                 text = start_message_text
                 board = keyboardMain
-        elif not (inValute and toValute):       # Если не введена любая валюта для перевода
+        elif not (inValute and toValute):           # Если не введена любая валюта для перевода
             if call.data in get_valutes_courses():  # Если код валюты есть в списке (на всякий случай)
-                if not inValute:   # Если не введдена валюта, из которой перевести
+                if not inValute:    # Если не введдена валюта, из которой перевести
                     text = "Отлично! Выбери код валюты в которую надо перевести."
                     board = keyboardValute
                     inValute = call.data
-                elif not toValute:  # Иначе если не введдена валюта, в которую перевести
+                elif not toValute:      # Иначе если не введдена валюта, в которую перевести
                     text = "Хорошо, теперь напиши мне сумму для перевода."
                     board = keyboardBack
                     toValute = call.data
@@ -168,10 +168,10 @@ def receivedKey(call):
 def receivedSumValute(message):
     inValute, toValute = chats.setdefault(str(message.chat.id), ("", ""))
 
-    if (inValute and toValute):  # Если введены обе валюты для перевода
+    if (inValute and toValute):     # Если введены обе валюты для перевода
         text, board = None, None
 
-        if is_digit(message.text):  # Если это число (float или int)
+        if is_digit(message.text):      # Если это число (float или int)
             valutesCourses = get_valutes_courses()
             valutesName = get_valutes_names()
             inValuteCourse = valutesCourses[inValute]
@@ -196,19 +196,19 @@ def receivedSumValute(message):
             inValute, toValute = "", ""
         else:
             text = "Упс! Пожоже это не число :(\nНапиши сумму ещё раз."
-            board = None  # Не заменяем клавиатуру
+            board = None    # Не заменяем клавиатуру
 
         chats[str(message.chat.id)] = (inValute, toValute)
-
-        # Удаляем сообщение пользователя
-        bot.delete_message(message.chat.id, message.id)
 
         # Меняем сообщение сообщение
         bot.edit_message_text(text, message.chat.id,
                               old_message, reply_markup=board
                               )
 
+    # Удаляем сообщение пользователя
+    bot.delete_message(message.chat.id, message.id)
 
-if (__name__ == "__main__"):
+
+if __name__ == "__main__":
     init_keyboards()
     bot.infinity_polling()
